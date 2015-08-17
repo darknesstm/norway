@@ -3,15 +3,14 @@
  */
 package me.chongchong.norway.bean;
 
-import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Sets;
+import com.google.common.base.Throwables;
 
 import me.chongchong.norway.NorwayBuildService;
+import me.chongchong.norway.internal.bean.BuildFieldDescriptor;
 
 /**
  * @author DarknessTM (askkoy@163.com)
@@ -21,9 +20,9 @@ public class BuildFieldBean extends AutoStartBean {
 	
 	private String clazz;
 	private String property;
-	private String flag;
+	private int flag;
 	private String idProperty;
-	private String buildFlag;
+	private int buildFlag;
 	private String type;
 	private String builder;
 	
@@ -33,10 +32,10 @@ public class BuildFieldBean extends AutoStartBean {
 	public void setProperty(String property) {
 		this.property = property;
 	}
-	public String getFlag() {
+	public int getFlag() {
 		return flag;
 	}
-	public void setFlag(String flag) {
+	public void setFlag(int flag) {
 		this.flag = flag;
 	}
 	public String getIdProperty() {
@@ -45,10 +44,10 @@ public class BuildFieldBean extends AutoStartBean {
 	public void setIdProperty(String idProperty) {
 		this.idProperty = idProperty;
 	}
-	public String getBuildFlag() {
+	public int getBuildFlag() {
 		return buildFlag;
 	}
-	public void setBuildFlag(String buildFlag) {
+	public void setBuildFlag(int buildFlag) {
 		this.buildFlag = buildFlag;
 	}
 	public String getType() {
@@ -86,25 +85,19 @@ public class BuildFieldBean extends AutoStartBean {
 	 */
 	@Override
 	protected void doStart() {
-//		try {
-//			Class<?> c = ClassUtils.forName(clazz, ClassUtils.getDefaultClassLoader());
-//			
-//			Class<?> groupClass = ClassUtils.forName(group, ClassUtils.getDefaultClassLoader());
-//			Set<Class<?>> buildGroupClassSet = Sets.newHashSet();
-//			for (String buildGroup : Splitter.on(",").omitEmptyStrings().trimResults().split(buildGroups)) {
-//				Class<?> buildGroupClass = ClassUtils.forName(buildGroup, ClassUtils.getDefaultClassLoader());
-//				buildGroupClassSet.add(buildGroupClass);
-//			}
-//		} catch (ClassNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (LinkageError e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		BuildFieldDescriptor fd = new BuildFieldDescriptor(c, getIdField(), getField(), groupClass, buildGroupClassSet, builder);
-//		norwayBuildService.addBuildFieldDescriptor(c, fd);
+		try {
+			Class<?> c = ClassUtils.forName(clazz, ClassUtils.getDefaultClassLoader());
+			Class<?> typeClass = null;
+			if (StringUtils.hasText(type)) {
+				typeClass = ClassUtils.forName(type, ClassUtils.getDefaultClassLoader());
+			}
+			
+			norwayBuildService.addBuildFieldDescriptor(c, new BuildFieldDescriptor(c, property, flag, buildFlag, idProperty, typeClass, builder));
+			
+		} catch (Throwable t) {
+			throw Throwables.propagate(t);
+		}
+
 	}
 	/* (non-Javadoc)
 	 * @see me.chongchong.norway.bean.AutoStartBean#doStop()

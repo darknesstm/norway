@@ -216,6 +216,7 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 								if (bo == null) {
 									continue;
 								}
+								
 								fieldDescriptorMap.put(clazz, new BuildFieldDescriptor(
 										clazz, 
 										pd.getName(), 

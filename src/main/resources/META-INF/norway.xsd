@@ -1,119 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://chongchong.me/schema/norway" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+<xsd:schema xmlns="http://chongchong.me/schema/norway" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	targetNamespace="http://chongchong.me/schema/norway">
 
+	<xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 
-	<xsd:complexType name="annotationType">
-		<xsd:attribute name="id" type="xsd:ID">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The unique identifier for a bean. ]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="package" type="xsd:string" use="optional">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The scan package. ]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-	
 	<xsd:complexType name="builderType">
 		<xsd:attribute name="id" type="xsd:ID">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[ The unique identifier for a bean. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="ref" type="xsd:string">
+		<xsd:attribute name="ref" type="xsd:string" use="required">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[ The bean that host the build method. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:sequence>
-			<xsd:element minOccurs="1" maxOccurs="unbounded" ref="builderMethod"></xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-	
-	<xsd:complexType name="builderMethodType">
-		<xsd:attribute name="id" type="xsd:ID">
+		<xsd:attribute name="name" type="xsd:string" use="optional">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The unique identifier for a bean. ]]></xsd:documentation>
+				<xsd:documentation><![CDATA[ The builder name. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="name" type="xsd:string">
+		<xsd:attribute name="method" type="xsd:string" use="required">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The build method name. ]]></xsd:documentation>
+				<xsd:documentation><![CDATA[ The builder method name. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="forType" type="xsd:string" use="optional">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The class type which the method build. ]]></xsd:documentation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[ The builder method build type. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="default" type="xsd:boolean" use="optional" default="false">
+		<xsd:attribute name="default" type="xsd:boolean" use="optional"
+			default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[ Whether method is the default builder for the type. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+
 	</xsd:complexType>
-	
-	<xsd:complexType name="targetBeanType">
+
+
+	<xsd:complexType name="buildFieldType">
 		<xsd:attribute name="id" type="xsd:ID">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[ The unique identifier for a bean. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="class" type="xsd:string">
+		<xsd:attribute name="class" type="xsd:string" use="required">
 			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The class which can be build. ]]></xsd:documentation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[ The class which can be build. ]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:sequence>
-			<xsd:element minOccurs="1" maxOccurs="unbounded" ref="targetBeanField"></xsd:element>
-		</xsd:sequence>
+		<xsd:attribute name="property" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[ The property for build ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="flag" type="xsd:int" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[ The flag for build the property ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="idProperty" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[ The id property in class for build ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="buildFlag" type="xsd:int" use="optional" default="0">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[ The build property in building for ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="type" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation source="java:java.lang.Class"><![CDATA[ The class which can be build. ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="builder" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[ specified builder  ]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
-	
-	<xsd:complexType name="targetBeanFieldType">
-		<xsd:attribute name="id" type="xsd:ID">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The unique identifier for a bean. ]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="field" type="xsd:string">
-			<xsd:annotation>
-				<xsd:documentation><![CDATA[ The field which can be build. ]]></xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-	</xsd:complexType>
-	
-	
-	<xsd:element name="annotation" type="annotationType">
-		<xsd:annotation> 
-			<xsd:documentation><![CDATA[ The annotation config ]]></xsd:documentation> 
-		</xsd:annotation>
-	</xsd:element>
-	
+
+
 	<xsd:element name="builder" type="builderType">
-		<xsd:annotation> 
-			<xsd:documentation><![CDATA[ The builder ]]></xsd:documentation> 
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[ The builder ]]></xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
-	
-	<xsd:element name="builderMethod" type="builderMethodType">
-		<xsd:annotation> 
-			<xsd:documentation><![CDATA[ The builder method ]]></xsd:documentation> 
+
+	<xsd:element name="buildField" type="buildFieldType">
+		<xsd:annotation>
+			<xsd:documentation><![CDATA[ The target bean ]]></xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
-	
-	<xsd:element name="targetBean" type="targetBeanType">
-		<xsd:annotation> 
-			<xsd:documentation><![CDATA[ The target bean ]]></xsd:documentation> 
-		</xsd:annotation>
-	</xsd:element>
-	
-	<xsd:element name="targetBeanField" type="targetBeanFieldType">
-		<xsd:annotation> 
-			<xsd:documentation><![CDATA[ The target bean field ]]></xsd:documentation> 
-		</xsd:annotation>
-	</xsd:element>
-</schema>
+</xsd:schema>

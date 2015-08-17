@@ -34,6 +34,9 @@ public class BuilderBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 		Assert.notNull(refBean, "ref cannot be null");
 		builder.addPropertyReference("bean", refBean);
 		
+		String name = element.getAttribute("name");
+		builder.addPropertyValue("name", name);
+		
 		String defaultBuilder = element.getAttribute("default");
 		builder.addPropertyValue("defaultBuilder", Boolean.parseBoolean(defaultBuilder));
 		

@@ -5,7 +5,9 @@ package me.chongchong.norway.internal.bean;
 
 import org.springframework.beans.BeanUtils;
 
-import jodd.bean.BeanUtil;
+import com.esotericsoftware.reflectasm.MethodAccess;
+
+import me.chongchong.norway.internal.MethodAccessCache;
 
 /**
  * @author DarknessTM (askkoy@163.com)
@@ -22,6 +24,11 @@ public class BuildFieldDescriptor {
 	private Class<?> type;
 	private String builderName;
 	
+	MethodAccess methodAccess;
+	int getIdIndex;
+	int setObjectIndex;
+	
+	
 	/**
 	 * @param tagertClass
 	 * @param propertyName
@@ -34,12 +41,15 @@ public class BuildFieldDescriptor {
 	public BuildFieldDescriptor(Class<?> tagertClass, String propertyName, int flag, int buildFlag, String idPropertyName, Class<?> type, String builderName) {
 		super();
 		this.tagertClass = tagertClass;
-		this.propertyName = propertyName;
 		this.flag = flag;
 		this.buildFlag = buildFlag;
-		this.idPropertyName = idPropertyName;
 		this.type = type;
 		this.builderName = builderName;
+		
+		methodAccess = MethodAccessCache.Instance.get(tagertClass);
+		getIdIndex = methodAccess.getIndex(BeanUtils.getPropertyDescriptor(tagertClass, idPropertyName).getReadMethod().getName());
+		setObjectIndex = methodAccess.getIndex(BeanUtils.getPropertyDescriptor(tagertClass, propertyName).getWriteMethod().getName());
+		
 	}
 
 	public Class<?> getTagertClass() {
@@ -72,11 +82,11 @@ public class BuildFieldDescriptor {
 	}
 
 	public Object getIdObject(Object bean) {
-		return BeanUtil.getProperty(bean, idPropertyName);
+		return methodAccess.invoke(bean, getIdIndex);
 	}
 	
 	public void setObject(Object bean, Object value) {
-		BeanUtil.setProperty(bean, propertyName, value);
+		methodAccess.invoke(bean, setObjectIndex, value);
 	}
 	
 }

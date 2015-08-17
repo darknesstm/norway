@@ -3,14 +3,15 @@
  */
 package me.chongchong.norway.internal.bean;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
 import org.springframework.util.ClassUtils;
 
-import com.google.common.base.Throwables;
+import com.esotericsoftware.reflectasm.MethodAccess;
+
+import me.chongchong.norway.internal.MethodAccessCache;
 
 /**
  * @author DarknessTM (askkoy@163.com)
@@ -24,6 +25,10 @@ public class BuilderDescriptor {
 	
 	private Object bean;
 	private Method method;
+	
+	MethodAccess methodAccess;
+	int methodIndex;
+	int parameterLength;
 	
 	/**
 	 * @param name
@@ -39,6 +44,14 @@ public class BuilderDescriptor {
 		this.method = method;
 		this.forType = forType;
 		this.auto = auto;
+		
+		methodAccess = MethodAccessCache.Instance.get(ClassUtils.getUserClass(bean));
+		parameterLength = method.getParameterTypes().length;
+		methodIndex = methodAccess.getIndex(method.getName(), method.getParameterTypes());
+		
+		if (parameterLength == 0 || parameterLength > 2) {
+			throw new IllegalArgumentException("参数数量不正确");
+		}
 	}
 
 	public boolean isAuto() {
@@ -62,10 +75,10 @@ public class BuilderDescriptor {
 	}
 	
 	public Map<Object, Object> getObjects(Collection<?> ids, int buildFlag) {
-		try {
-			return (Map<Object, Object>) method.invoke(bean, ids);
-		} catch (Throwable t) {
-			throw Throwables.propagate(t);
+		if (parameterLength == 1) {
+			return (Map<Object, Object>) methodAccess.invoke(bean, methodIndex, ids);
+		} else {
+			return (Map<Object, Object>) methodAccess.invoke(bean, methodIndex, ids, buildFlag);
 		}
 	}
 }

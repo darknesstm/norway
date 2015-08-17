@@ -29,20 +29,26 @@ public class BuildFieldBeanDefinitionParser extends AbstractSingleBeanDefinition
 	 */
 	@Override
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		String group = element.getAttribute("group");
-		Assert.notNull(group, "group cannot be null");
-		builder.addPropertyReference("group", group);
+		String clazz = element.getAttribute("clazz");
+		Assert.notNull(clazz, "clazz cannot be null");
+		builder.addPropertyValue("clazz", clazz);
+		
+		String property = element.getAttribute("property");
+		Assert.notNull(clazz, "property cannot be null");
+		builder.addPropertyValue("property", property);
+		
+		String flag = element.getAttribute("flag");
+		builder.addPropertyValue("flag", Integer.parseInt(flag));
+		
+		String idProperty = element.getAttribute("idProperty");
+		Assert.notNull(clazz, "idProperty cannot be null");
+		builder.addPropertyValue("idProperty", idProperty);
+		
+		String buildFlag = element.getAttribute("buildFlag");
+		builder.addPropertyValue("buildFlag", Integer.parseInt(buildFlag));
 		
 		String type = element.getAttribute("type");
 		builder.addPropertyValue("type", type);
-		
-		String idField = element.getAttribute("idField");
-		Assert.notNull(idField, "idField cannot be null");
-		builder.addPropertyValue("idField", idField);
-		
-		
-		String buildGroups = element.getAttribute("buildGroups");
-		builder.addPropertyValue("buildGroups", buildGroups);
 		
 		String builderName = element.getAttribute("builder");
 		builder.addPropertyValue("builder", builderName);
