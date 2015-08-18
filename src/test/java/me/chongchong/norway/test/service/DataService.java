@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.collect.Maps;
 
 import me.chongchong.norway.annotation.Builder;
+import me.chongchong.norway.test.model.ResultObject;
 
 /**
  * @author DarknessTM (askkoy@163.com)
@@ -20,20 +21,14 @@ import me.chongchong.norway.annotation.Builder;
 public class DataService {
 
 	@Builder
-	public Map<Long, String> getString(Collection<Long> ids) {
-		Map<Long, String> result = Maps.newHashMap();
-		for (Long id : ids) {
-			result.put(id, String.valueOf(id) + "-");
+	public <T> Map<T, ResultObject<T>> getString(Collection<T> ids) {
+		Map<T, ResultObject<T>> result = Maps.newHashMap();
+		for (T id : ids) {
+			ResultObject<T> obj = new ResultObject<T>();
+			obj.setId(id);
+			result.put(id, obj);
 		}
 		return result;
 	}
 	
-	@Builder
-	public Map<Long, Integer> getInteger(Collection<Long> ids) {
-		Map<Long, String> result = Maps.newHashMap();
-		for (Long id : ids) {
-			result.put(id, String.valueOf(id) + "-");
-		}
-		return null;
-	}
 }

@@ -3,20 +3,11 @@
  */
 package me.chongchong.norway.bean;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
-
-import com.google.common.base.Throwables;
-
-import me.chongchong.norway.NorwayBuildService;
-import me.chongchong.norway.internal.bean.BuildFieldDescriptor;
-
 /**
  * @author DarknessTM (askkoy@163.com)
  *
  */
-public class BuildFieldBean extends AutoStartBean {
+public class BuildFieldBean {
 	
 	private String clazz;
 	private String property;
@@ -70,40 +61,5 @@ public class BuildFieldBean extends AutoStartBean {
 		this.clazz = clazz;
 	}
 	
-	@Autowired
-	private NorwayBuildService norwayBuildService;
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.context.Phased#getPhase()
-	 */
-	@Override
-	public int getPhase() {
-		return norwayBuildService.getPhase() - 1;
-	}
-	/* (non-Javadoc)
-	 * @see me.chongchong.norway.bean.AutoStartBean#doStart()
-	 */
-	@Override
-	protected void doStart() {
-		try {
-			Class<?> c = ClassUtils.forName(clazz, ClassUtils.getDefaultClassLoader());
-			Class<?> typeClass = null;
-			if (StringUtils.hasText(type)) {
-				typeClass = ClassUtils.forName(type, ClassUtils.getDefaultClassLoader());
-			}
-			
-			norwayBuildService.addBuildFieldDescriptor(c, new BuildFieldDescriptor(c, property, flag, buildFlag, idProperty, typeClass, builder));
-			
-		} catch (Throwable t) {
-			throw Throwables.propagate(t);
-		}
 
-	}
-	/* (non-Javadoc)
-	 * @see me.chongchong.norway.bean.AutoStartBean#doStop()
-	 */
-	@Override
-	protected void doStop() {
-		
-	}
 }

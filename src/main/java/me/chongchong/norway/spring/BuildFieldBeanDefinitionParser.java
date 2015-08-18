@@ -25,11 +25,19 @@ public class BuildFieldBeanDefinitionParser extends AbstractSingleBeanDefinition
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.springframework.beans.factory.xml.AbstractBeanDefinitionParser#shouldGenerateId()
+	 */
+	@Override
+	protected boolean shouldGenerateId() {
+		return true;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser#doParse(org.w3c.dom.Element, org.springframework.beans.factory.support.BeanDefinitionBuilder)
 	 */
 	@Override
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		String clazz = element.getAttribute("clazz");
+		String clazz = element.getAttribute("class");
 		Assert.notNull(clazz, "clazz cannot be null");
 		builder.addPropertyValue("clazz", clazz);
 		

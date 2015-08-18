@@ -42,6 +42,8 @@ import com.google.common.collect.SetMultimap;
 
 import me.chongchong.norway.annotation.BuildField;
 import me.chongchong.norway.annotation.Builder;
+import me.chongchong.norway.bean.BuildFieldBean;
+import me.chongchong.norway.bean.BuilderBean;
 import me.chongchong.norway.internal.bean.BuildFieldDescriptor;
 import me.chongchong.norway.internal.bean.BuilderDescriptor;
 
@@ -77,21 +79,24 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 		this.buildBeanPackages = buildBeanPackages;
 	}
 
-	public void addDefaultBuilderDescrptor(Class<?> clazz, BuilderDescriptor bd) {
+	private void addDefaultBuilderDescrptor(Class<?> clazz, BuilderDescriptor bd) {
+		logger.info("add default BuilderDescriptor:{}", bd);
 		BuilderDescriptor old = defaultBuilders.put(clazz, bd);
 		if (old != null) {
 			logger.warn("{} is replaced by {} for type {}", old, bd, clazz);
 		}
 	}
 	
-	public void addNamedBuilderDescrptor(String name, BuilderDescriptor bd) {
+	private void addNamedBuilderDescrptor(String name, BuilderDescriptor bd) {
+		logger.info("add named BuilderDescriptor:{}", bd);
 		BuilderDescriptor old = namedBuilders.put(name, bd);
 		if (old != null) {
 			logger.warn("{} is replaced by {} for name {}", old, bd, name);
 		}
 	}
 	
-	public void addBuildFieldDescriptor(Class<?> clazz, BuildFieldDescriptor fd) {
+	private void addBuildFieldDescriptor(Class<?> clazz, BuildFieldDescriptor fd) {
+		logger.info("add BuildFieldDescriptor:{}", fd);
 		fieldDescriptorMap.put(clazz, fd);
 	}
 
@@ -126,7 +131,7 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 	@Override
 	public void start() {
 		running = true;
-		
+				
 		scanBuildBeanPackages();
 		
 		scanBuilder();
@@ -237,7 +242,20 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 	}
 	
 	private boolean checkBuilderSignature(Method m) {
-		return true;
+		Class<?> returnType = m.getReturnType();
+		Class<?>[] parameterTypes = m.getParameterTypes();
+	
+		if (returnType == null || !Map.class.isAssignableFrom(returnType)) {
+			return false;
+		}
+		
+		if (parameterTypes.length == 1) {
+			return Collection.class.isAssignableFrom(parameterTypes[0]);
+		} else if (parameterTypes.length == 2) {
+			return (Collection.class.isAssignableFrom(parameterTypes[0]) && int.class.equals(parameterTypes[1]));
+		}
+		
+		return false;
 	}
 	
 	private void scanBuilder() {
@@ -247,42 +265,112 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 			
 
 			Class<?> serviceClass = ClassUtils.getUserClass(bean);
-			// 查找出构建方法
-			for (Method m : serviceClass.getMethods()) {
-				Builder bm = m.getAnnotation(Builder.class);
+			
+			if (BuilderBean.class.isAssignableFrom(serviceClass)) {
 				
-				// 方法必须是2个参数，第一个是collection，第二个是int
-				if (bm != null) {
+				BuilderBean bb = (BuilderBean) bean;
+				
+				try {
+					Class<?> serviceClass2 = ClassUtils.getUserClass( bb.getBean());
 					
-					if (!checkBuilderSignature(m)) {
-						logger.warn("build method signature incorrect:" + m.toString());
-					} else {
-						try {
-							Class<?> valueType = bm.forType();
-							if (void.class.equals(valueType) ) {
-								if (m.getGenericReturnType() != null) {
-									Type[] keyValueTypes = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments();
-									valueType = (Class<?>) keyValueTypes[1];
-								} else {
-									logger.warn("BuildMethod.forType() incorrect:" + m.toString());
-									continue;
-								}
-							}
-							
-							logger.info("find builder:{}", m);
-							BuilderDescriptor db = new BuilderDescriptor(bm.id(), bean, m, valueType, bm.auto());
-							if (bm.auto()) {
-								addDefaultBuilderDescrptor(valueType, db);
+					for (Method m : serviceClass2.getMethods()) {
+						
+						if (!m.getName().equals(bb.getMethod())) {
+							continue;
+						}
+						
+						if (!checkBuilderSignature(m)) {
+							logger.warn("build method signature incorrect:" + m.toString());
+							continue;
+						}
+						
+						Class<?> valueType = null;
+						if (StringUtils.hasText(bb.getForType())) {
+							valueType = ClassUtils.forName(bb.getForType(), ClassUtils.getDefaultClassLoader());
+						}
+						
+						if (valueType == null ) {
+							if (m.getGenericReturnType() != null) {
+								Type[] keyValueTypes = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments();
+								valueType = (Class<?>) keyValueTypes[1];
 							} else {
-								addNamedBuilderDescrptor(bm.id(), db);
+								logger.warn("forType incorrect:{}" , bb);
+								continue;
 							}
-							
-						} catch (Exception e) {
-							logger.warn("build method returntype incorrect:" + m.toString());
+						}
+						
+						BuilderDescriptor db = new BuilderDescriptor(bb.getName(), bean, m, valueType, bb.isDefaultBuilder());
+						
+						if (bb.isDefaultBuilder()) {
+							addDefaultBuilderDescrptor(valueType, db);
+						}
+						
+						if (StringUtils.hasText(bb.getName())) {
+							addNamedBuilderDescrptor(bb.getName(), db);
+						}
+					}
+					
+				} catch (Throwable t) {
+					throw Throwables.propagate(t);
+				}
+			} else if (BuildFieldBean.class.isAssignableFrom(serviceClass)) {
+				BuildFieldBean bfb = (BuildFieldBean) bean;
+				
+				try {
+					Class<?> c = ClassUtils.forName(bfb.getClazz(), ClassUtils.getDefaultClassLoader());
+					Class<?> typeClass = null;
+					if (StringUtils.hasText(bfb.getType())) {
+						typeClass = ClassUtils.forName(bfb.getType(), ClassUtils.getDefaultClassLoader());
+					}
+					
+					addBuildFieldDescriptor(c, new BuildFieldDescriptor(c, bfb.getProperty(), bfb.getFlag(), bfb.getBuildFlag(), bfb.getIdProperty(), typeClass, bfb.getBuilder()));
+					
+				} catch (Throwable t) {
+					throw Throwables.propagate(t);
+				}
+				
+			} else {
+				// 查找出构建方法
+				for (Method m : serviceClass.getMethods()) {
+					Builder bm = m.getAnnotation(Builder.class);
+					
+					// 方法必须是2个参数，第一个是collection，第二个是int
+					if (bm != null) {
+						if (!checkBuilderSignature(m)) {
+							logger.warn("build method signature incorrect:" + m.toString());
+						} else {
+							try {
+								Class<?> valueType = bm.forType();
+								if (void.class.equals(valueType) ) {
+									if (m.getGenericReturnType() != null) {
+										Type[] keyValueTypes = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments();
+										if (keyValueTypes[1] instanceof ParameterizedType) {
+											valueType = (Class<?>) ((ParameterizedType) keyValueTypes[1]).getRawType();
+										} else {
+											valueType = (Class<?>) keyValueTypes[1];
+										}
+										
+									} else {
+										logger.warn("BuildMethod.forType() incorrect:" + m.toString());
+										continue;
+									}
+								}
+								
+								BuilderDescriptor db = new BuilderDescriptor(bm.id(), bean, m, valueType, bm.auto());
+								if (bm.auto()) {
+									addDefaultBuilderDescrptor(valueType, db);
+								} else {
+									addNamedBuilderDescrptor(bm.id(), db);
+								}
+							} catch (Exception e) {
+								throw Throwables.propagate(e);
+							}
 						}
 					}
 				}
 			}
+			
+	
 		}
 	}
 	/* (non-Javadoc)
@@ -326,6 +414,10 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 		callback.run();
 	}
 	
+	static interface DataBuildSuit {
+
+		void buildBeans(Collection<?> beans, int flags);
+	}
 	
 	static class DefaultDataBuildSuit implements DataBuildSuit {
 

@@ -25,6 +25,14 @@ public class BuilderBeanDefinitionParser extends AbstractSingleBeanDefinitionPar
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.springframework.beans.factory.xml.AbstractBeanDefinitionParser#shouldGenerateId()
+	 */
+	@Override
+	protected boolean shouldGenerateId() {
+		return true;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser#doParse(org.w3c.dom.Element, org.springframework.beans.factory.support.BeanDefinitionBuilder)
 	 */
 	@Override
