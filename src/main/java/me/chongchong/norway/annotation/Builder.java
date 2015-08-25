@@ -23,10 +23,10 @@ public @interface Builder {
 	
 	
 	/**
-	 * id名称，用于被指定引用
+	 * 名称，用于被指定引用
 	 * @return
 	 */
-	String id() default "";
+	String name() default "";
 	
 	Class<?> forType() default void.class;
 	

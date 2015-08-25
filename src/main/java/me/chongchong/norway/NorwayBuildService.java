@@ -36,6 +36,7 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
@@ -48,6 +49,8 @@ import me.chongchong.norway.internal.bean.BuildFieldDescriptor;
 import me.chongchong.norway.internal.bean.BuilderDescriptor;
 
 /**
+ * Norway数据构建框架的服务入口
+ * 
  * @author DarknessTM (askkoy@163.com)
  *
  */
@@ -100,6 +103,13 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 		fieldDescriptorMap.put(clazz, fd);
 	}
 
+	/**
+	 * 根据配置构建模型内容
+	 * 
+	 * @param beans 需要构建内容的模块集合
+	 * @param clazz 构建的模型类型
+	 * @param flags 构建的参数
+	 */
 	public <T> void build(Collection<? extends T> beans, Class<T> clazz, int flags) {
 		try {
 			DataBuildSuit suit = beanBuildSuitMap.get(clazz);
@@ -110,6 +120,50 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 		} catch (Exception e) {
 			throw Throwables.propagate(e);
 		}
+	}
+	
+	/**
+	 * 可以直接通过id列表创建出模型列表
+	 * 
+	 * @param ids
+	 * @param clazz
+	 * @param flags
+	 * @return
+	 */
+	public <T> List<T> getBuildedList(List<Object> ids, Class<T> clazz, int flags) {
+		BuilderDescriptor bd = defaultBuilders.get(clazz);
+		if (bd == null) {
+			throw new IllegalArgumentException(clazz + " canot build.");
+		}
+		
+		Map<Object, Object> objects = bd.getObjects(ids, flags);
+		List<T> list = Lists.newArrayList();
+		for (Object id : ids) {
+			list.add((T) objects.get(id));
+		}
+		return list;
+	}
+	
+	/**
+	 * 可以直接通过id列表创建出模型列表
+	 * 
+	 * @param ids
+	 * @param builder
+	 * @param flags
+	 * @return
+	 */
+	public <T> List<T> getBuildedList(List<Object> ids, String builder, int flags) {
+		BuilderDescriptor bd = namedBuilders.get(builder);
+		if (bd == null) {
+			throw new IllegalArgumentException(builder + " is not a builder name.");
+		}
+		
+		Map<Object, Object> objects = bd.getObjects(ids, flags);
+		List<T> list = Lists.newArrayList();
+		for (Object id : ids) {
+			list.add((T) objects.get(id));
+		}
+		return list;
 	}
 	
 	/* (non-Javadoc)
@@ -356,11 +410,11 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 									}
 								}
 								
-								BuilderDescriptor db = new BuilderDescriptor(bm.id(), bean, m, valueType, bm.auto());
+								BuilderDescriptor db = new BuilderDescriptor(bm.name(), bean, m, valueType, bm.auto());
 								if (bm.auto()) {
 									addDefaultBuilderDescrptor(valueType, db);
 								} else {
-									addNamedBuilderDescrptor(bm.id(), db);
+									addNamedBuilderDescrptor(bm.name(), db);
 								}
 							} catch (Exception e) {
 								throw Throwables.propagate(e);
