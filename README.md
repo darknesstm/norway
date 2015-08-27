@@ -109,3 +109,19 @@ List<ViewModel> getList(List<Long> ids, int flag) {
 ```java
 buildService.getBuildedList(ids, ViewModel.class, flag);
 ```
+
+当然也支持非嵌入式的配置方式，需要在spring的配置文件中进行
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:norway="http://chongchong.me/schema/norway"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://chongchong.me/schema/norway http://chongchong.me/schema/norway/norway.xsd">
+	
+	<norway:builder ref="id" method="xxxxx"/>
+	<norway:buildField flag="1" idProperty="id" property="subObject" class="test.Model"/>
+
+</beans>
+
+```
