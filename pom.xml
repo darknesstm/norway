@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>me.chongchong</groupId>
 	<artifactId>norway</artifactId>
-	<version>0.2.0</version>
+	<version>0.3.2</version>
 
 	<name>${project.groupId}:${project.artifactId}</name>
 	<description>Norway Data Build Framework Library</description>

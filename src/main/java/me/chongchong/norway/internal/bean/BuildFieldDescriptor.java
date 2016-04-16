@@ -48,7 +48,12 @@ public class BuildFieldDescriptor {
 		this.propertyName = propertyName;
 		
 		methodAccess = MethodAccessCache.Instance.get(tagertClass);
-		getIdIndex = methodAccess.getIndex(BeanUtils.getPropertyDescriptor(tagertClass, idPropertyName).getReadMethod().getName());
+		if (idPropertyName.equals("this")) { // 特殊字符
+			getIdIndex = -1;
+		} else {
+			getIdIndex = methodAccess.getIndex(BeanUtils.getPropertyDescriptor(tagertClass, idPropertyName).getReadMethod().getName());
+		}
+		
 		setObjectIndex = methodAccess.getIndex(BeanUtils.getPropertyDescriptor(tagertClass, propertyName).getWriteMethod().getName());
 		
 	}
@@ -83,6 +88,9 @@ public class BuildFieldDescriptor {
 	}
 
 	public Object getIdObject(Object bean) {
+		if (getIdIndex == -1) {
+			return bean;
+		}
 		return methodAccess.invoke(bean, getIdIndex);
 	}
 	

@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -122,6 +123,25 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 		}
 	}
 	
+	/**
+	 * 专门为单个对象适用的构建方法
+	 * @param bean
+	 * @param clazz
+	 * @param flags
+	 */
+	public <T, V extends T> void build(V bean, Class<T> clazz, int flags) {
+		build(Arrays.asList(bean), clazz, flags);
+	}
+	
+	/**
+	 * 专门为单个对象适用的构建方法
+	 * @param bean
+	 * @param flags
+	 */
+	public <V> void build(V bean, int flags) {
+		build(Arrays.asList(bean), (Class<V>)bean.getClass(), flags);
+	}
+
 	/**
 	 * 可以直接通过id列表创建出模型列表
 	 * 
@@ -396,7 +416,7 @@ public class NorwayBuildService extends ApplicationObjectSupport implements Reso
 							try {
 								Class<?> valueType = bm.forType();
 								if (void.class.equals(valueType) ) {
-									if (m.getGenericReturnType() != null) {
+									if (m.getGenericReturnType() != null && (m.getGenericReturnType() instanceof ParameterizedType)) {
 										Type[] keyValueTypes = ((ParameterizedType) m.getGenericReturnType()).getActualTypeArguments();
 										if (keyValueTypes[1] instanceof ParameterizedType) {
 											valueType = (Class<?>) ((ParameterizedType) keyValueTypes[1]).getRawType();
